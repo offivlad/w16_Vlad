@@ -1,5 +1,5 @@
 <?php
-echo "<b>Lesson 13</b><br><br>";
+echo "<b>Lesson 15</b><br><br>";
 
 function sayHello() {
     echo "Привет!<br>";
