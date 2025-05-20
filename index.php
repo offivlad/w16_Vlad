@@ -48,7 +48,7 @@ echo "<h3>6. Фильтрация студентов по возрасту (>= 2
 $adultStudents = array_filter($students, function($student) {
     return $student['age'] >= 21;
 });
-print_r($adultStudents);
+print_r($adultStudents[1]);
 
 
 echo "<h3>7. implode и explode</h3>";
@@ -73,3 +73,36 @@ echo "JSON: $json<br>";
 $decoded = json_decode($json, true);
 print_r($decoded);
 
+
+echo "<h3>*. сортировка пузырьком</h3>";
+function bubbleSort(array $arr): array {
+    $n = count($arr);
+    for ($i = 0; $i < $n - 1; $i++) {
+        // Флаг для проверки, были ли перестановки в текущей итерации
+        $swapped = false;
+        for ($j = 0; $j < $n - $i - 1; $j++) {
+            if ($arr[$j] > $arr[$j + 1]) {
+                // Меняем элементы местами
+                $temp = $arr[$j];
+                $arr[$j] = $arr[$j + 1];
+                $arr[$j + 1] = $temp;
+                $swapped = true;
+            }
+        }
+        // Если за проход не было ни одной перестановки — массив отсортирован
+        if (!$swapped) {
+            break;
+        }
+    }
+    return $arr;
+}
+
+// Пример использования:
+$array = [64, 34, 25, 12, 22, 11, 90];
+$sorted = bubbleSort($array);
+print_r($array);
+echo ('<br>Стало <br>');
+print_r($sorted);
+echo ('<br>Перевернули <br>');
+$reverse_sort = array_reverse($sorted);
+print_r($reverse_sort);
