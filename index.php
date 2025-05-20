@@ -1,165 +1,75 @@
 <?php
 echo "<b>Lesson 15</b><br><br>";
 
-function sayHello() {
-    echo "Привет!<br>";
-}
-sayHello();
 
-function sum($a, $b) {
-    return $a + $b;
-}
-
-$result = sum(5, 3);
-echo $result;
-var_dump($result);
-function greet($name = "Гость") {
-    echo "Привет, $name!";
-}
-
-greet();
-greet("Влад");
-
-$anonist = function ($a) {
-    return $a * 2;
-};
-
-echo $anonist(2);
-
-$anonistFn = fn($a) => $a * 2;
-
-echo $anonistFn(2);
-
-echo "<br><br>";
-
-$data = [
-    "user" => [
-        "name" => "Влад",
-        "contacts" => [
-            "email" => "vlad@example.com",
-            "phone" => "123-456"
-        ]
-    ],
-    "roles" => ["admin", "editor"],
-    "active" => true
-];
-
-function recursivePrint($array, $level = 0) {
-    foreach ($array as $key => $value) {
-        echo str_repeat("  ", $level); // отступ для читаемости
-        if (is_array($value)) {
-            echo "$key:\n";
-            recursivePrint($value, $level + 1);
-        } else {
-            echo "$key: $value\n";
-        }
-    }
-}
-
-// Вызов функции
-recursivePrint($data);
-print_r ($data);
-
-function myrecuseve($array) {
-    foreach ($array as $key => $value) {
-
-        if (is_array($value)){
-            echo "$key:\n";
-            myrecuseve($value);
-        }else {
-            echo "$key: $value\n";
-        }
-
-    }
-
-}
-
-
-myrecuseve($data);
-
-$numbers = [1, 2, 3, 4, 5];
-$arrayRes = array_map(function ($number) {
-    return $number + 1;
+echo "<h3>1. array_map – увеличить каждое число на 10</h3>";
+$numbers = [5, 10, 15, 20];
+$increased = array_map(function($num) {
+    return $num + 10;
 }, $numbers);
-
-print_r($arrayRes);
-
-echo "<br><br>";
-
-$text = "Привет, мир!";
-
-// mb_strlen — правильная длина строки с UTF-8
-echo "Длина строки: " . mb_strlen($text, 'UTF-8') . "\n";
-
-// mb_strtoupper — перевод в верхний регистр (UTF-8)
-echo "Верхний регистр: " . mb_strtoupper($text, 'UTF-8') . "\n";
-
-// mb_strtolower — перевод в нижний регистр (UTF-8)
-echo "Нижний регистр: " . mb_strtolower($text, 'UTF-8') . "\n";
-
-echo "<br><br>";
-
-$fruits = ["яблоко", "банан"];
-
-// array_push — добавляет элемент(ы) в конец массива
-array_push($fruits, "груша", "апельсин");
-print_r($fruits); // ["яблоко", "банан", "груша", "апельсин"]
-
-// array_pop — удаляет последний элемент массива
-$last = array_pop($fruits);
-echo "Удалённый элемент: $last\n"; // апельсин
-print_r($fruits); // ["яблоко", "банан", "груша"]
-
-// array_merge — объединяет два массива
-$vegetables = ["морковь", "огурец"];
-$merged = array_merge($fruits, $vegetables);
-print_r($merged); // ["яблоко", "банан", "груша", "морковь", "огурец"]
-
-echo "<br><br>";
-
-$data = [
-    "Привет",
-    123,
-    45.67,
-    ["a", "b"],
-    true
-];
+print_r($increased);
 
 
-foreach ($data as $item) {
-    if (is_string($item)) {
-        echo "Строка: $item\n";
-    } elseif (is_numeric($item)) {
-        echo "Число: $item\n";
-    } elseif (is_array($item)) {
-        echo "Массив: ";
-        print_r($item);
-    } else {
-        echo "Другой тип: ";
-        var_dump($item);
-    }
+echo "<h3>2. array_filter – оставить только четные числа</h3>";
+$filtered = array_filter($numbers, function($num) {
+    return $num % 2 === 0;
+});
+print_r($filtered);
+
+
+echo "<h3>3. array_chunk – разбить массив на части</h3>";
+$letters = ['a', 'b', 'c', 'd', 'e', 'f'];
+$chunks = array_chunk($letters, 2);
+print_r($chunks);
+
+
+echo "<h3>4. in_array – проверка наличия элемента</h3>";
+$fruits = ['apple', 'banana', 'orange'];
+if (in_array('banana', $fruits)) {
+    echo "Банан найден! 🍌";
+} else {
+    echo "Банан не найден!";
 }
 
-echo "<br><br>";
 
-$number = -7.8;
+echo "<h3>5. foreach – вывод имени и фамилии студентов</h3>";
+$students = [
+    ['name' => 'Иван', 'surname' => 'Иванов', 'age' => 20],
+    ['name' => 'Мария', 'surname' => 'Петрова', 'age' => 22],
+    ['name' => 'Алексей', 'surname' => 'Сидоров', 'age' => 19],
+];
 
-echo "abs(): " . abs($number) . "<br>";         // Абсолютное значение: 7.8
-echo "sqrt(): " . sqrt(16) . "<br>";            // Квадратный корень: 4
-echo "round(): " . round($number) . "<br>";     // Округление по математическим правилам: -8
-echo "ceil(): " . ceil($number) . "<br>";       // Округление вверх: -7
-echo "floor(): " . floor($number) . "<br>";     // Округление вниз: -8
+foreach ($students as $student) {
+    echo $student['name'] . ' ' . $student['surname'] . "<br>";
+}
 
-// Генерация случайных чисел
-echo "rand(1, 100): " . rand(1, 100) . "<br>";       // Случайное число от 1 до 100 (менее надёжное)
-echo "mt_rand(1, 100): " . mt_rand(1, 100) . "<br>"; // Более надёжное случайное число от 1 до 100
 
-echo "<br><br>";
+echo "<h3>6. Фильтрация студентов по возрасту (>= 21)</h3>";
+$adultStudents = array_filter($students, function($student) {
+    return $student['age'] >= 21;
+});
+print_r($adultStudents);
 
-echo "Текущая дата: " . date("d.m.Y") . "<br>";           // 13.05.2025
-echo "Текущая дата (другой формат): " . date("Y-m-d") . "<br>"; // 2025-05-13
-echo "Текущее время: " . date("H:i:s") . "<br>";          // 14:23:45
-echo "День недели: " . date("l") . "<br>";                // Tuesday
-echo "Дата и время полностью: " . date("d.m.Y H:i:s") . "<br>"; // 13.05.2025 14:23:45
 
-echo "<br><br>";
+echo "<h3>7. implode и explode</h3>";
+$langs = ['PHP', 'JavaScript', 'Python'];
+$str = implode(', ', $langs);
+echo "Строка: $str<br>";
+
+$newLangs = explode(', ', $str);
+print_r($newLangs);
+
+
+echo "<h3>8. json_encode и json_decode</h3>";
+$data = [
+    'title' => 'Сайт под ключ',
+    'price' => 1200,
+    'features' => ['адаптивность', 'скорость', 'SEO']
+];
+
+$json = json_encode($data, JSON_UNESCAPED_UNICODE);
+echo "JSON: $json<br>";
+
+$decoded = json_decode($json, true);
+print_r($decoded);
+
