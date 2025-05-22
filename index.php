@@ -44,13 +44,13 @@ x - Разрешенны комментарии и пробелы
 
 /* Условия
 /(hello)+/i
-/(hello){1, 3}/i
+/(hello){1, 3}/i*/
 $url = 'https://catalog.onliner.by/';
 $matches = [];
 preg_match('/(https:\/\/)?(catalog\..+)/', $url, $matches);
 var_dump($matches);
 
-*/
+
 
 /* Жадный и не жадный поиск
 '<.+>' - Жадный
