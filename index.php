@@ -83,6 +83,47 @@ function validateEmail(string $email): bool
     return (bool)preg_match('/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/', $email);
 }
 
+function validateEmail2(string $email): bool
+{
+    return (bool)preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email);
+}
+
+
 var_dump(validateEmail('test@test.com'));
 echo '<br>';
 var_dump(validateEmail('test_test_test'));
+
+
+$array = [[1,3], [9,10], [2,7]];
+
+print_r($array);
+
+function Otrzok( array $otrez_array) : array
+{
+
+    if (empty($otrez_array)) {
+        return [];
+    }
+
+    usort($otrez_array, function ($a, $b) {
+        return $a <=> $b;
+    });
+
+    $newarray = [];
+    $first = $otrez_array[0];
+
+    foreach ($otrez_array as $item) {
+        if ($item[0] <= $first[1]) {
+            $first[1] = max($first[1], $item[1]);
+        } else {
+        $newarray[] = $first;
+        $first = $item;
+
+        }
+    }
+
+    $newarray[] = $first;
+    return $newarray;
+}
+
+print_r(Otrzok($array));
