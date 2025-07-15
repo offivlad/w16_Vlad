@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\TelegramValidationController;
 
 Route::post('/auth/telegram', [AuthController::class, 'telegram']);
 
@@ -24,3 +25,7 @@ Route::get('/test-header', function (Request $request) {
         'all_headers' => $request->headers->all(),
     ]);
 });
+
+
+
+Route::post('/auth/telegram-validate', [TelegramValidationController::class, 'validateInitData']);
