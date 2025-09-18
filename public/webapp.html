@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram WebApp</title>
+    <style>
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-hint: var(--tg-theme-hint-color, #707579);
+            --tg-link: var(--tg-theme-link-color, #3390ec);
+            --tg-button: var(--tg-theme-button-color, #3390ec);
+            --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--tg-bg);
+            color: var(--tg-text);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            background: var(--tg-secondary-bg);
+        }
+
+        .success {
+            background: var(--tg-button);
+            color: var(--tg-button-text);
+        }
+
+        .error {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .warning {
+            background: #ffcc00;
+            color: #000000;
+        }
+
+        .user-card {
+            background: var(--tg-secondary-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .user-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 15px;
+            display: block;
+        }
+
+        .premium-badge {
+            background: #ffd700;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Telegram WebApp</h1>
+    <div id="status" class="status">Initializing...</div>
+    <div id="content"></div>
+</div>
+
+<script>
+    class TelegramWebApp {
+        constructor() {
+            this.botToken = 'YOUR_BOT_TOKEN'; // Replace with your bot token
+            this.apiEndpoint = 'https://your-api.com/auth/telegram';
+            this.isInTelegram = false;
+            this.userData = null;
+            this.chatData = null;
+
+            this.init();
+        }
+
+        async init() {
+            try {
+                // 1. Check environment
+                this.checkEnvironment();
+
+                if (!this.isInTelegram) {
+                    this.showNonTelegramContent();
+                    return;
+                }
+
+                // 2. Initialize WebApp
+                this.setupTelegramWebApp();
+
+                // 3. Process user data
+                await this.processUserData();
+
+                // 4. Setup event handlers
+                this.setupEventHandlers();
+
+            } catch (error) {
+                this.showError(`Initialization error: ${error.message}`);
+                console.error('Initialization error:', error);
+            }
+        }
+
+        checkEnvironment() {
+            this.isInTelegram = !!(window.Telegram && window.Telegram.WebApp);
+            console.log(`Running in Telegram: ${this.isInTelegram}`);
+        }
+
+        setupTelegramWebApp() {
+            try {
+                // Expand the WebApp to full height
+                Telegram.WebApp.expand();
+
+                // Enable closing confirmation
+                Telegram.WebApp.enableClosingConfirmation();
+
+                // Set background color to match theme
+                document.body.style.backgroundColor = Telegram.WebApp.themeParams.bg_color || '#ffffff';
+
+                this.updateStatus('Telegram WebApp initialized', 'success');
+            } catch (error) {
+                throw new Error(`WebApp setup failed: ${error.message}`);
+            }
+        }
+
+        async processUserData() {
+            try {
+                // Validate we have initData
+                if (!Telegram.WebApp.initData) {
+                    throw new Error('Missing initialization data');
+                }
+
+                // Get user and chat data
+                this.userData = Telegram.WebApp.initDataUnsafe?.user;
+                this.chatData = Telegram.WebApp.initDataUnsafe?.chat;
+
+                if (!this.userData) {
+                    throw new Error('User data not available');
+                }
+
+                // Display user info
+                this.displayUserInfo();
+
+                // Validate with backend
+                const validationResult = await this.validateWithBackend();
+
+                if (!validationResult.valid) {
+                    throw new Error(validationResult.error || 'Backend validation failed');
+                }
+
+                this.updateStatus('User authenticated successfully', 'success');
+
+            } catch (error) {
+                throw new Error(`User data processing failed: ${error.message}`);
+            }
+        }
+
+        displayUserInfo() {
+            const contentEl = document.getElementById('content');
+            let html = `
+                    <div class="user-card">
+                        <h2>Welcome${this.userData.is_premium ? ' <span class="premium-badge">PREMIUM</span>' : ''}</h2>
+                `;
+
+            // Add photo if available
+            if (this.userData.photo_url) {
+                html += `<img src="${this.userData.photo_url}" class="user-photo" alt="Profile photo">`;
+            }
+
+            // Add user info
+            html += `
+                    <p><strong>ID:</strong> ${this.userData.id}</p>
+                    <p><strong>Name:</strong> ${this.userData.first_name || ''} ${this.userData.last_name || ''}</p>
+                    ${this.userData.username ? `<p><strong>Username:</strong> @${this.userData.username}</p>` : ''}
+                    ${this.userData.language_code ? `<p><strong>Language:</strong> ${this.userData.language_code}</p>` : ''}
+                    <p><strong>Added to attachment menu:</strong> ${this.userData.added_to_attachment_menu ? 'Yes' : 'No'}</p>
+                    <p><strong>Allows PMs:</strong> ${this.userData.allows_write_to_pm ? 'Yes' : 'No'}</p>
+                `;
+
+            // Add chat info if available
+            if (this.chatData) {
+                html += `
+                        <h3 style="margin-top: 20px;">Chat Info</h3>
+                        <p><strong>Title:</strong> ${this.chatData.title}</p>
+                        <p><strong>Type:</strong> ${this.chatData.type}</p>
+                        ${this.chatData.username ? `<p><strong>Username:</strong> @${this.chatData.username}</p>` : ''}
+                    `;
+
+                if (this.chatData.photo_url) {
+                    html += `<img src="${this.chatData.photo_url}" class="user-photo" alt="Chat photo" style="width: 80px; height: 80px;">`;
+                }
+            }
+
+            html += `</div>`;
+            contentEl.innerHTML = html;
+        }
+
+        async validateWithBackend() {
+            try {
+                const response = await fetch(this.apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': Telegram.WebApp.initData
+                    },
+                    body: JSON.stringify({
+                        init_data: Telegram.WebApp.initData,
+                        bot_token: this.botToken
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+
+            } catch (error) {
+                console.error('Validation error:', error);
+                return {
+                    valid: false,
+                    error: error.message
+                };
+            }
+        }
+
+        setupEventHandlers() {
+            // Theme change handler
+            Telegram.WebApp.onEvent('themeChanged', () => {
+                console.log('Theme changed');
+                document.body.style.backgroundColor = Telegram.WebApp.themeParams.bg_color || '#ffffff';
+            });
+
+            // Viewport change handler
+            Telegram.WebApp.onEvent('viewportChanged', (event) => {
+                console.log('Viewport changed:', event);
+            });
+
+            // Back button handler
+            Telegram.WebApp.BackButton.onClick(() => {
+                console.log('Back button clicked');
+                Telegram.WebApp.close();
+            });
+
+            // Main button handler
+            Telegram.WebApp.MainButton.onClick(() => {
+                console.log('Main button clicked');
+                this.handleMainButtonClick();
+            });
+
+            // Show back button if needed
+            if (Telegram.WebApp.isVersionAtLeast('6.1')) {
+                Telegram.WebApp.BackButton.show();
+            }
+
+            // Configure main button
+            Telegram.WebApp.MainButton.setText('Continue');
+            Telegram.WebApp.MainButton.show();
+        }
+
+        handleMainButtonClick() {
+            // Implement your main button logic here
+            this.updateStatus('Action completed!', 'success');
+            Telegram.WebApp.MainButton.hide();
+
+            // Close after delay
+            setTimeout(() => {
+                Telegram.WebApp.close();
+            }, 2000);
+        }
+
+        showNonTelegramContent() {
+            this.updateStatus(
+                'This application must be opened within Telegram. Please launch it via a Telegram bot.',
+                'warning'
+            );
+
+            document.getElementById('content').innerHTML = `
+                    <div class="user-card">
+                        <p>For development testing, you can use:</p>
+                        <ul>
+                            <li>Telegram's official clients</li>
+                            <li><a href="https://telegram.org/blog/webk-apps" target="_blank">WebK</a> for development</li>
+                        </ul>
+                        <p>Add ?test=1 to URL for test mode</p>
+                    </div>
+                `;
+
+            // Test mode
+            if (window.location.search.includes('test=1')) {
+                this.enableTestMode();
+            }
+        }
+
+        enableTestMode() {
+            console.warn('Running in test mode');
+            window.Telegram = {
+                WebApp: {
+                    initData: 'test_mode=1&user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22testuser%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Atrue%7D',
+                    initDataUnsafe: {
+                        user: {
+                            id: 123456789,
+                            first_name: "Test",
+                            last_name: "User",
+                            username: "testuser",
+                            language_code: "en",
+                            is_premium: true,
+                            added_to_attachment_menu: true,
+                            allows_write_to_pm: true,
+                            photo_url: "https://via.placeholder.com/150"
+                        },
+                        chat: {
+                            id: -1001234567890,
+                            type: "supergroup",
+                            title: "Test Group",
+                            username: "testgroup",
+                            photo_url: "https://via.placeholder.com/150"
+                        }
+                    },
+                    ready: () => console.log("Telegram.WebApp.ready()"),
+                    expand: () => console.log("Telegram.WebApp.expand()"),
+                    enableClosingConfirmation: () => console.log("Closing confirmation enabled"),
+                    themeParams: {
+                        bg_color: "#ffffff",
+                        text_color: "#000000",
+                        hint_color: "#707579",
+                        link_color: "#3390ec",
+                        button_color: "#3390ec",
+                        button_text_color: "#ffffff",
+                        secondary_bg_color: "#f0f0f0"
+                    },
+                    isVersionAtLeast: (version) => true,
+                    BackButton: {
+                        onClick: (cb) => console.log("BackButton callback set"),
+                        show: () => console.log("BackButton shown"),
+                        hide: () => console.log("BackButton hidden")
+                    },
+                    MainButton: {
+                        onClick: (cb) => console.log("MainButton callback set"),
+                        show: () => console.log("MainButton shown"),
+                        hide: () => console.log("MainButton hidden"),
+                        setText: (text) => console.log(`MainButton text set to ${text}`),
+                        setParams: (params) => console.log("MainButton params set", params)
+                    },
+                    onEvent: (event, handler) => console.log(`Event handler set for ${event}`)
+                }
+            };
+
+            // Reinitialize with test data
+            this.isInTelegram = true;
+            this.setupTelegramWebApp();
+            this.processUserData();
+        }
+
+        updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        showError(message) {
+            this.updateStatus(`Error: ${message}`, 'error');
+            console.error(message);
+        }
+    }
+
+    // Initialize the app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        new TelegramWebApp();
+    });
+</script>
+</body>
+</html>
